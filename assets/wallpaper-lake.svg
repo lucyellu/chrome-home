@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" role="img" aria-label="Quiet alpine lake with green slopes">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#749cc0"/>
+      <stop offset=".5" stop-color="#c5d8d7"/>
+      <stop offset="1" stop-color="#50745e"/>
+    </linearGradient>
+    <linearGradient id="lake" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#678f90"/>
+      <stop offset=".55" stop-color="#315b65"/>
+      <stop offset="1" stop-color="#18343d"/>
+    </linearGradient>
+    <filter id="haze"><feGaussianBlur stdDeviation="22"/></filter>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#sky)"/>
+  <circle cx="1450" cy="190" r="120" fill="#fff2b8" opacity=".58"/>
+  <path d="M0 520 240 310l190 78 195-210 215 188 168-104 252 190 214-150 446 232v546H0Z" fill="#365a58"/>
+  <path d="M0 616 220 490l230 82 240-142 230 116 220-90 265 112 215-80 300 152v440H0Z" fill="#2f4b45"/>
+  <path d="M0 680c220-70 360-84 530-36 258 73 390 64 654-12 286-82 496-58 736 74v374H0Z" fill="#213833"/>
+  <rect y="695" width="1920" height="385" fill="url(#lake)"/>
+  <g opacity=".17" filter="url(#haze)">
+    <path d="M130 790h1660" stroke="#edf9e6" stroke-width="8"/>
+    <path d="M240 870h1440" stroke="#edf9e6" stroke-width="7"/>
+    <path d="M390 955h1140" stroke="#edf9e6" stroke-width="5"/>
+  </g>
+  <path d="M0 875c164 14 300 8 466-30 210-48 392-42 554 16 226 82 500 76 900-32v251H0Z" fill="#102529" opacity=".7"/>
+</svg>
