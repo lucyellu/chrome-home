@@ -4,13 +4,17 @@ A self-contained Manifest V3 new-tab extension inspired by calm focus dashboards
 
 ## Features
 
-- Scenic local backgrounds with daily quote and photo-style credit
-- Large clock, personalized greeting, and daily focus
+- CodePen-inspired flip clock on a soft radial gray background
+- Personalized greeting, daily quote, and daily focus
 - Search with Google, Bing, DuckDuckGo, or Brave
 - Local to-do drawer backed by `chrome.storage.local`
 - Editable shortcuts
 - Optional weather via Open-Meteo with city search or browser geolocation
-- Settings for visibility, units, search provider, name, and background
+- Settings for visibility, units, search provider, and name
+
+## Attribution
+
+The flip-card clock and radial background treatment are adapted from Adem Ilter's CodePen, [Countdown Clock](https://codepen.io/ademilter/pen/nazxPX), rewritten locally without jQuery or external runtime dependencies for Manifest V3.
 
 ## Load in Chrome
 
@@ -25,4 +29,4 @@ Chrome will ask whether to keep the new-tab override after install. Choose **Kee
 
 - `manifest.json` declares Manifest V3 and the `chrome_url_overrides.newtab` page.
 - `newtab.html`, `styles.css`, and `newtab.js` contain the dashboard.
-- `assets/` contains local wallpapers and extension icons.
+- `assets/` contains extension icons.

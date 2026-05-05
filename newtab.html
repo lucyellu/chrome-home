@@ -30,7 +30,7 @@
       </section>
 
       <section class="center-stage" aria-label="Focus dashboard">
-        <div class="clock" id="clock">--:--</div>
+        <div class="clock flip-clock" id="clock" aria-label="Current time"></div>
         <h1 id="greeting">Good evening.</h1>
 
         <form class="search" id="searchForm" autocomplete="off">
@@ -67,7 +67,6 @@
           <blockquote id="quoteText"></blockquote>
           <figcaption id="quoteAuthor"></figcaption>
         </figure>
-        <div class="photo-credit" id="photoCredit"></div>
       </section>
     </main>
 
@@ -122,11 +121,6 @@
           <label class="switch"><input id="showShortcuts" type="checkbox"><span>Shortcuts</span></label>
           <label class="switch"><input id="showTodo" type="checkbox"><span>Todo</span></label>
           <label class="switch"><input id="showQuote" type="checkbox"><span>Quote</span></label>
-        </fieldset>
-
-        <fieldset>
-          <legend>Background</legend>
-          <div class="background-options" id="backgroundOptions"></div>
         </fieldset>
 
         <div class="form-actions">

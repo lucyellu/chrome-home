@@ -1,23 +1,5 @@
 const STORAGE_KEY = "chromeHomeState";
 
-const WALLPAPERS = [
-  {
-    file: "assets/wallpaper-dawn.svg",
-    label: "Dawn ridge",
-    credit: "Dawn Ridge"
-  },
-  {
-    file: "assets/wallpaper-lake.svg",
-    label: "Still lake",
-    credit: "Still Lake"
-  },
-  {
-    file: "assets/wallpaper-night.svg",
-    label: "Night trail",
-    credit: "Night Trail"
-  }
-];
-
 const SEARCH_PROVIDERS = {
   google: { label: "Google", url: "https://www.google.com/search?q=" },
   bing: { label: "Bing", url: "https://www.bing.com/search?q=" },
@@ -71,7 +53,6 @@ const DEFAULT_STATE = {
     { id: "shortcut-3", name: "Drive", url: "https://drive.google.com" }
   ],
   settings: {
-    backgroundIndex: 0,
     searchProvider: "google",
     units: "fahrenheit",
     showWeather: true,
@@ -84,6 +65,8 @@ const DEFAULT_STATE = {
 };
 
 let state = structuredClone(DEFAULT_STATE);
+let clockDigits = [];
+let lastClockValue = "";
 
 const $ = (selector) => document.querySelector(selector);
 
@@ -94,7 +77,6 @@ const els = {
   quoteRegion: $("#quoteRegion"),
   quoteText: $("#quoteText"),
   quoteAuthor: $("#quoteAuthor"),
-  photoCredit: $("#photoCredit"),
   searchForm: $("#searchForm"),
   searchInput: $("#searchInput"),
   focusPrompt: $("#focusPrompt"),
@@ -131,7 +113,6 @@ const els = {
   showShortcuts: $("#showShortcuts"),
   showTodo: $("#showTodo"),
   showQuote: $("#showQuote"),
-  backgroundOptions: $("#backgroundOptions"),
   locateButton: $("#locateButton"),
   weatherButton: $("#weatherButton"),
   weatherIcon: $("#weatherIcon"),
@@ -144,6 +125,7 @@ async function init() {
   state = mergeState(DEFAULT_STATE, await loadState());
   resetDailyFocusIfNeeded();
   buildSettingsOptions();
+  buildFlipClock();
   bindEvents();
   renderAll();
   tickClock();
@@ -179,6 +161,117 @@ function resetDailyFocusIfNeeded() {
     state.focus = { text: "", done: false, date: "" };
     saveState();
   }
+}
+
+function buildFlipClock() {
+  els.clock.replaceChildren();
+  clockDigits = [];
+
+  const hourGroup = document.createElement("div");
+  hourGroup.className = "flip-group";
+  const minuteGroup = document.createElement("div");
+  minuteGroup.className = "flip-group";
+  const separator = document.createElement("span");
+  separator.className = "flip-separator";
+  separator.textContent = ":";
+  separator.setAttribute("aria-hidden", "true");
+
+  for (let index = 0; index < 4; index += 1) {
+    const digit = createFlipDigit("0");
+    clockDigits.push(digit);
+    (index < 2 ? hourGroup : minuteGroup).append(digit);
+  }
+
+  els.clock.append(hourGroup, separator, minuteGroup);
+}
+
+function createFlipDigit(value) {
+  const digit = document.createElement("div");
+  digit.className = "flip-digit";
+  digit.dataset.value = value;
+  digit.setAttribute("aria-hidden", "true");
+
+  const top = createFlipHalf("flip-half flip-top", value);
+  const bottom = createFlipHalf("flip-half flip-bottom", value);
+  const foldTop = createFlipHalf("flip-fold flip-fold-top", value, true);
+  const foldBottom = createFlipHalf("flip-fold flip-fold-bottom", value, true);
+
+  digit.append(top, bottom, foldTop, foldBottom);
+  return digit;
+}
+
+function createFlipHalf(className, value, withShadow = false) {
+  const half = document.createElement("div");
+  half.className = className;
+  if (withShadow) {
+    const shadow = document.createElement("div");
+    shadow.className = "flip-shadow";
+    half.append(shadow);
+  }
+  const inner = document.createElement("div");
+  inner.className = "flip-value";
+  inner.textContent = value;
+  half.append(inner);
+  return half;
+}
+
+function updateFlipClock(value) {
+  if (!clockDigits.length) {
+    buildFlipClock();
+  }
+
+  els.clock.setAttribute("aria-label", `${value.slice(0, 2)}:${value.slice(2)}`);
+
+  if (!lastClockValue) {
+    clockDigits.forEach((digit, index) => setFlipDigit(digit, value[index]));
+    lastClockValue = value;
+    return;
+  }
+
+  clockDigits.forEach((digit, index) => {
+    if (lastClockValue[index] !== value[index]) {
+      flipDigit(digit, value[index]);
+    }
+  });
+  lastClockValue = value;
+}
+
+function setFlipDigit(digit, value) {
+  digit.dataset.value = value;
+  digit.querySelectorAll(".flip-value").forEach((node) => {
+    node.textContent = value;
+  });
+}
+
+function flipDigit(digit, nextValue) {
+  const currentValue = digit.dataset.value ?? nextValue;
+  if (currentValue === nextValue) return;
+
+  clearTimeout(digit.flipTimer);
+  digit.classList.remove("is-flipping");
+
+  const top = digit.querySelector(".flip-top .flip-value");
+  const bottom = digit.querySelector(".flip-bottom .flip-value");
+  const foldTop = digit.querySelector(".flip-fold-top .flip-value");
+  const foldBottom = digit.querySelector(".flip-fold-bottom .flip-value");
+
+  top.textContent = currentValue;
+  bottom.textContent = nextValue;
+  foldTop.textContent = currentValue;
+  foldBottom.textContent = nextValue;
+  digit.dataset.value = nextValue;
+
+  requestAnimationFrame(() => {
+    digit.classList.add("is-flipping");
+  });
+
+  digit.flipTimer = setTimeout(() => {
+    digit.classList.remove("is-flipping");
+    top.textContent = nextValue;
+    bottom.textContent = nextValue;
+    foldTop.textContent = nextValue;
+    foldBottom.textContent = nextValue;
+  }, 1050);
 }
 
 function bindEvents() {
@@ -218,7 +311,9 @@ function bindEvents() {
 
 function tickClock() {
   const now = new Date();
-  els.clock.textContent = now.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  const hourText = String(now.getHours()).padStart(2, "0");
+  const minuteText = String(now.getMinutes()).padStart(2, "0");
+  updateFlipClock(`${hourText}${minuteText}`);
   const hour = now.getHours();
   const part = hour < 12 ? "morning" : hour < 18 ? "afternoon" : "evening";
   const suffix = state.name ? `, ${state.name}` : "";
@@ -226,7 +321,6 @@ function tickClock() {
 }
 
 function renderAll() {
-  renderBackground();
   renderQuote();
   renderFocus();
   renderTodos();
@@ -234,13 +328,6 @@ function renderAll() {
   renderWeather();
   renderVisibility();
   syncSettingsForm();
-}
-
-function renderBackground() {
-  const index = clampIndex(state.settings.backgroundIndex, WALLPAPERS.length);
-  const wallpaper = WALLPAPERS[index];
-  document.documentElement.style.setProperty("--wallpaper", `url("${wallpaper.file}")`);
-  els.photoCredit.textContent = wallpaper.credit;
 }
 
 function renderQuote() {
@@ -348,21 +435,6 @@ function buildSettingsOptions() {
     option.textContent = provider.label;
     els.searchProvider.append(option);
   }
-
-  els.backgroundOptions.replaceChildren();
-  WALLPAPERS.forEach((wallpaper, index) => {
-    const button = document.createElement("button");
-    button.className = "background-option";
-    button.type = "button";
-    button.title = wallpaper.label;
-    button.setAttribute("aria-label", wallpaper.label);
-    button.style.backgroundImage = `url("${wallpaper.file}")`;
-    button.addEventListener("click", () => {
-      state.settings.backgroundIndex = index;
-      saveAndRender();
-    });
-    els.backgroundOptions.append(button);
-  });
 }
 
 function syncSettingsForm() {
@@ -374,9 +446,6 @@ function syncSettingsForm() {
   els.showShortcuts.checked = state.settings.showShortcuts;
   els.showTodo.checked = state.settings.showTodo;
   els.showQuote.checked = state.settings.showQuote;
-  [...els.backgroundOptions.children].forEach((child, index) => {
-    child.classList.toggle("active", index === clampIndex(state.settings.backgroundIndex, WALLPAPERS.length));
-  });
 }
 
 function handleSearch(event) {
@@ -566,11 +635,6 @@ function normalizeUrl(url) {
   if (!url) return "";
   if (/^https?:\/\//i.test(url)) return url;
   return `https://${url}`;
-}
-
-function clampIndex(value, length) {
-  const index = Number(value);
-  return Number.isInteger(index) && index >= 0 && index < length ? index : 0;
 }
 
 function iconForWeather(kind) {
