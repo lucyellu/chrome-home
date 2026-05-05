@@ -4,7 +4,7 @@ A self-contained Manifest V3 new-tab extension inspired by calm focus dashboards
 
 ## Features
 
-- CodePen-inspired flip clock on a soft radial gray background
+- Flip clock over a warm grainy liquid-gradient background
 - Personalized greeting, daily quote, and daily focus
 - Search with Google, Bing, DuckDuckGo, or Brave
 - Local to-do drawer backed by `chrome.storage.local`
@@ -14,7 +14,7 @@ A self-contained Manifest V3 new-tab extension inspired by calm focus dashboards
 
 ## Attribution
 
-The flip-card clock and radial background treatment are adapted from Adem Ilter's CodePen, [Countdown Clock](https://codepen.io/ademilter/pen/nazxPX), rewritten locally without jQuery or external runtime dependencies for Manifest V3.
+The flip-card clock is adapted from Adem Ilter's CodePen, [Countdown Clock](https://codepen.io/ademilter/pen/nazxPX), rewritten locally without jQuery or external runtime dependencies for Manifest V3. The warm grainy palette is inspired by Juxtopposed's [Grainy Gradient, Gaussian Blur](https://codepen.io/Juxtopposed/pen/BaqLEQY), and the interactive liquid motion is inspired by Cameron Knight's [Interactive Liquid Gradient using Three.js](https://codepen.io/cameronknight/pen/ogxWmBP).
 
 ## Load in Chrome
 

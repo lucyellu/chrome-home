@@ -40,6 +40,13 @@ const WEATHER_CODES = new Map([
   [95, ["storm", "Storm"]]
 ]);
 
+const LIQUID_BLOBS = [
+  { color: "#EDB74D", x: 0.2, y: 0.64, radius: 0.26, speed: 0.32, drift: 0.18 },
+  { color: "#EB6666", x: 0.76, y: 0.56, radius: 0.29, speed: 0.26, drift: 0.22 },
+  { color: "#6FB18A", x: 0.58, y: 0.24, radius: 0.25, speed: 0.22, drift: 0.18 },
+  { color: "#F0DBA5", x: 0.46, y: 0.48, radius: 0.2, speed: 0.38, drift: 0.12 }
+];
+
 const DEFAULT_STATE = {
   name: "",
   focus: { text: "", done: false, date: "" },
@@ -72,6 +79,7 @@ const $ = (selector) => document.querySelector(selector);
 
 const els = {
   dashboard: $("#dashboard"),
+  liquidCanvas: $("#liquidCanvas"),
   clock: $("#clock"),
   greeting: $("#greeting"),
   quoteRegion: $("#quoteRegion"),
@@ -126,6 +134,7 @@ async function init() {
   resetDailyFocusIfNeeded();
   buildSettingsOptions();
   buildFlipClock();
+  initLiquidGradient();
   bindEvents();
   renderAll();
   tickClock();
@@ -272,6 +281,94 @@ function flipDigit(digit, nextValue) {
     foldTop.textContent = nextValue;
     foldBottom.textContent = nextValue;
   }, 1050);
+}
+
+function initLiquidGradient() {
+  const canvas = els.liquidCanvas;
+  const context = canvas?.getContext("2d", { alpha: true });
+  if (!canvas || !context) return;
+
+  const motionOK = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const pointer = { x: 0.5, y: 0.5, active: false };
+  let width = 0;
+  let height = 0;
+  let dpr = 1;
+
+  const resize = () => {
+    const rect = canvas.getBoundingClientRect();
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    width = Math.max(1, Math.floor(rect.width));
+    height = Math.max(1, Math.floor(rect.height));
+    canvas.width = Math.floor(width * dpr);
+    canvas.height = Math.floor(height * dpr);
+    context.setTransform(dpr, 0, 0, dpr, 0, 0);
+    drawLiquid(performance.now() * 0.001);
+  };
+
+  const setPointer = (event) => {
+    pointer.x = event.clientX / Math.max(1, window.innerWidth);
+    pointer.y = event.clientY / Math.max(1, window.innerHeight);
+    pointer.active = true;
+  };
+
+  const releasePointer = () => {
+    pointer.active = false;
+  };
+
+  const drawBlob = (x, y, radius, color, alpha = 0.94) => {
+    const gradient = context.createRadialGradient(x, y, 0, x, y, radius);
+    gradient.addColorStop(0, hexToRgba(color, alpha));
+    gradient.addColorStop(0.52, hexToRgba(color, alpha * 0.56));
+    gradient.addColorStop(1, hexToRgba(color, 0));
+    context.fillStyle = gradient;
+    context.beginPath();
+    context.arc(x, y, radius, 0, Math.PI * 2);
+    context.fill();
+  };
+
+  const animate = (time) => {
+    drawLiquid(time * 0.001);
+    requestAnimationFrame(animate);
+  };
+
+  function drawLiquid(time) {
+    context.clearRect(0, 0, width, height);
+    context.fillStyle = "#F0DBA5";
+    context.fillRect(0, 0, width, height);
+    context.globalCompositeOperation = "source-over";
+
+    const base = Math.min(width, height);
+    LIQUID_BLOBS.forEach((blob, index) => {
+      const wave = time * blob.speed + index * 1.8;
+      const x = (blob.x + Math.sin(wave) * blob.drift + Math.cos(wave * 0.72) * 0.08) * width;
+      const y = (blob.y + Math.cos(wave * 0.86) * blob.drift + Math.sin(wave * 0.54) * 0.08) * height;
+      const radius = base * (blob.radius + Math.sin(wave * 1.2) * 0.035);
+      drawBlob(x, y, radius, blob.color);
+    });
+
+    const ease = pointer.active ? 0.98 : 0.62;
+    const pulse = 1 + Math.sin(time * 1.6) * 0.06;
+    drawBlob(pointer.x * width, pointer.y * height, base * 0.28 * pulse, "#6FB18A", ease);
+    drawBlob((1 - pointer.x * 0.55) * width, (0.18 + pointer.y * 0.42) * height, base * 0.22, "#EB6666", 0.64);
+  }
+
+  resize();
+  window.addEventListener("resize", resize);
+  window.addEventListener("pointermove", setPointer, { passive: true });
+  window.addEventListener("pointerleave", releasePointer);
+
+  if (motionOK) {
+    requestAnimationFrame(animate);
+  }
+}
+
+function hexToRgba(hex, alpha) {
+  const clean = hex.replace("#", "");
+  const value = Number.parseInt(clean, 16);
+  const red = (value >> 16) & 255;
+  const green = (value >> 8) & 255;
+  const blue = value & 255;
+  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
 }
 
 function bindEvents() {
@@ -496,6 +593,7 @@ function addShortcut(event) {
 }
 
 function openSettings() {
+  closeTodo();
   syncSettingsForm();
   openDialog(els.settingsDialog);
 }
@@ -588,6 +686,12 @@ function locate() {
 }
 
 function openTodo() {
+  if (els.settingsDialog.open) {
+    els.settingsDialog.close();
+  }
+  if (els.shortcutDialog.open) {
+    els.shortcutDialog.close();
+  }
   els.todoDrawer.classList.add("open");
   els.todoDrawer.setAttribute("aria-hidden", "false");
   setTimeout(() => els.todoInput.focus(), 80);

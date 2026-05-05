@@ -9,7 +9,10 @@
   </head>
   <body>
     <main class="dashboard" id="dashboard">
-      <div class="backdrop" id="backdrop" aria-hidden="true"></div>
+      <div class="backdrop" id="backdrop" aria-hidden="true">
+        <canvas id="liquidCanvas"></canvas>
+      </div>
+      <div class="grain-overlay" aria-hidden="true"></div>
       <div class="scrim" aria-hidden="true"></div>
 
       <section class="topbar" aria-label="Dashboard tools">
@@ -129,6 +132,13 @@
         </div>
       </form>
     </dialog>
+
+    <svg class="noise-svg" aria-hidden="true" focusable="false">
+      <filter id="noiseFilter">
+        <feTurbulence type="fractalNoise" baseFrequency="0.62" numOctaves="3" stitchTiles="stitch"></feTurbulence>
+        <feColorMatrix type="saturate" values="0"></feColorMatrix>
+      </filter>
+    </svg>
 
     <script src="newtab.js"></script>
   </body>
